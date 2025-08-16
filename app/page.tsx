@@ -9,8 +9,8 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-16 relative z-10">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
-            Secure Your DeFi Future with{" "}
-            <span className="text-cyan-600">Insurance</span>
+            Secure Your DeFi Investments{" "}
+           
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             Protect against smart contract risks, governance attacks, and
