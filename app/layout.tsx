@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { Manrope } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { DynamicProvider } from "@/components/providers/dynamic-provider";
+import { WagmiProviderWrapper } from "@/components/providers/wagmi-provider";
 import "./globals.css";
 
 const geist = Geist({
@@ -36,10 +37,12 @@ export default function RootLayout({
       className={`${geist.variable} ${manrope.variable} antialiased`}
     >
       <body className="font-sans">
-        <DynamicProvider>
-          <Navigation />
-          {children}
-        </DynamicProvider>
+        <WagmiProviderWrapper>
+          <DynamicProvider>
+            <Navigation />
+            {children}
+          </DynamicProvider>
+        </WagmiProviderWrapper>
       </body>
     </html>
   );

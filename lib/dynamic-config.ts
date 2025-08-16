@@ -6,24 +6,21 @@ export const dynamicConfig = {
   walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors],
   settings: {
     walletList: ["rainbow", "metamask", "coinbase", "walletconnect", "phantom"],
-    networks: [
-      {
-        chainId: 11155111, // Sepolia testnet
-        chainName: "Sepolia",
-        name: "Sepolia",
-        networkId: 11155111,
-        nativeCurrency: {
-          name: "Sepolia Ether",
-          symbol: "SEP",
-          decimals: 18,
-        },
-        rpcUrls: ["https://rpc.sepolia.org"],
-        blockExplorerUrls: ["https://sepolia.etherscan.io"],
-        iconUrls: [
-          "https://ethereum.org/static/6b935ac0e6194247347855dc3d328e83/6ed5f/eth-diamond-black.png",
-        ],
+    // Deployed contract addresses on Sepolia
+    contracts: {
+      LPVault: {
+        address: "0xEC1f7B099c0a984badF83222aeb61f1e4cd7dB97",
+        chainId: 11155111, // Sepolia
       },
-    ],
+      PayoutVault: {
+        address: "0x6f5421f96786F69609b3f2d15A268A5c4cbD6dEc",
+        chainId: 11155111, // Sepolia
+      },
+      PremiumVault: {
+        address: "0xc2fE392C66eD17BA2C388A41fee23Ff4Fd4ba037",
+        chainId: 11155111, // Sepolia
+      },
+    },
     eventsCallbacks: {
       onAuthSuccess: (args: any) => {
         console.log("Auth success:", args);
