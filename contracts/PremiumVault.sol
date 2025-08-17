@@ -19,35 +19,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-// Minimal CCIP interfaces for hackathon
-interface IRouterClient {
-    function ccipSend(uint64 destinationChainSelector, Client.EVM2AnyMessage calldata message) external payable returns (bytes32);
-    function getFee(uint64 destinationChainSelector, Client.EVM2AnyMessage calldata message) external view returns (uint256);
-}
-
-library Client {
-    struct EVMTokenAmount {
-        address token;
-        uint256 amount;
-    }
-
-    struct EVM2AnyMessage {
-        bytes receiver;
-        bytes data;
-        EVMTokenAmount[] tokenAmounts;
-        address feeToken;
-        bytes extraArgs;
-    }
-
-    function _argsToBytes(GenericExtraArgsV2 memory _args) internal pure returns (bytes memory) {
-        return abi.encode(_args);
-    }
-
-    struct GenericExtraArgsV2 {
-        uint256 gasLimit;
-        bool allowOutOfOrderExecution;
-    }
-}
+import {Client} from "@chainlink/contracts-ccip/contracts/libraries/Client.sol";
+import {IRouterClient} from "@chainlink/contracts-ccip/contracts/interfaces/IRouterClient.sol";
 
 contract PremiumVault is Ownable, ReentrancyGuard {
   using SafeERC20 for IERC20;
@@ -128,7 +101,7 @@ contract PremiumVault is Ownable, ReentrancyGuard {
     payoutVault = _payoutVault;
   }
 
-  // ─────────────────────────── Admin: wiring ───────────────────────────
+  // ─────────────────────────── Owner functions ───────────────────────────
   function setRouter(address _router) external onlyOwner {
     if (_router == address(0)) revert InvalidAddress();
     router = IRouterClient(_router);
@@ -157,15 +130,14 @@ contract PremiumVault is Ownable, ReentrancyGuard {
     emit GasLimitSet(selector, gasLimit);
   }
 
-  function setPremiumSplits(uint256 bpsToLP, uint256 bpsToReserve) external onlyOwner {
-    if (bpsToLP == 0 && bpsToReserve == 0) revert ZeroAllocation();
-    if (bpsToLP + bpsToReserve > BPS) revert BadAllocationSum();
-    premiumBpsToLP = bpsToLP;
-    premiumBpsToReserve = bpsToReserve;
-    emit SplitUpdated(bpsToLP, bpsToReserve);
+  function setSplit(uint256 bpsToLP_, uint256 bpsToReserve_) external onlyOwner {
+    if (bpsToLP_ + bpsToReserve_ != BPS) revert BadAllocationSum();
+    premiumBpsToLP = bpsToLP_;
+    premiumBpsToReserve = bpsToReserve_;
+    emit SplitUpdated(bpsToLP_, bpsToReserve_);
   }
 
-  // ─────────────────────────── User: buy coverage ───────────────────────────
+  // ─────────────────────────── External functions ───────────────────────────
   /**
    * @notice Pay premium in PYUSD, split locally, then CCIP-send policy terms to Hedera PolicyManager.
    * @param dstChainSelector   Hedera chain selector (must be allowlisted)

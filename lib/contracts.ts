@@ -1980,7 +1980,7 @@ export const CONTRACT_ADDRESSES = {
   // Sepolia contracts
   LPVault: "0xEC1f7B099c0a984badF83222aeb61f1e4cd7dB97",
   PayoutVault: "0x6f5421f96786F69609b3f2d15A268A5c4cbD6dEc",
-  PremiumVault: "0xc2fE392C66eD17BA2C388A41fee23Ff4Fd4ba037",
+  PremiumVault: "0x8CDBf091e385D0D4A7e8bf7D9AE11d69647bF499", // Fixed contract with proper Chainlink imports
 
   // Hedera Testnet contracts
   PolicyManager: "0xd1b6BEa5A3b3dd4836100f5C55877c59d4666569",
@@ -2022,8 +2022,8 @@ export interface Claim {
 
 // Chain selectors
 export const CHAIN_SELECTORS = {
-  HEDERA_TESTNET: BigInt("1"),
-  SEPOLIA: BigInt("11155111"),
+  HEDERA_TESTNET: BigInt("222782988166878823"),
+  SEPOLIA: BigInt("16015286601757825753"),
 } as const;
 
 export interface OpenClaimParams {

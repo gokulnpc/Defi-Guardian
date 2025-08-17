@@ -168,9 +168,7 @@ export function useContractInteraction() {
       console.log("policyTerms", policyTerms);
       // CCIP parameters for Hedera
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      const hederaReceiver = `0x${HEDERA_CONTRACT_ADDRESSES.PolicyManager.slice(
-        2
-      )}` as `0x${string}`;
+      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
       console.log("hederaReceiver", hederaReceiver);
       console.log("dstChainSelector", dstChainSelector);
       // First, let's estimate the CCIP fee
@@ -337,10 +335,8 @@ export function useContractInteraction() {
       };
 
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      const hederaReceiver = `0x${HEDERA_CONTRACT_ADDRESSES.PolicyManager.slice(
-        2
-      )}` as `0x${string}`;
-
+      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
+      console.log("publicClient", await publicClient.getChainId());
       const result = await publicClient.readContract({
         address: SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
         abi: PremiumVaultABI,

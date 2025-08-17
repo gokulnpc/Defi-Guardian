@@ -16,6 +16,7 @@
     "clean": "hardhat clean"
   },
   "dependencies": {
+    "@chainlink/contracts-ccip": "^1.6.0",
     "@dynamic-labs/embedded-wallet": "^4.27.0",
     "@dynamic-labs/ethereum": "^4.27.0",
     "@dynamic-labs/sdk-react-core": "^4.27.0",
