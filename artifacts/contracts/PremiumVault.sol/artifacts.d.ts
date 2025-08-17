@@ -15,7 +15,7 @@ export interface PremiumVault$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {"2751":[{"length":32,"start":2816},{"length":32,"start":3824},{"length":32,"start":3956},{"length":32,"start":4073}]};
   readonly inputSourceName: "project/contracts/PremiumVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 import "hardhat/types/artifacts";

@@ -15,7 +15,7 @@ export interface CCIPReceiver$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/PayoutVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 export interface Client$Type {
@@ -29,7 +29,7 @@ export interface Client$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/PayoutVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 export interface IRouterClient$Type {
@@ -43,7 +43,7 @@ export interface IRouterClient$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/PayoutVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 export interface PayoutVault$Type {
@@ -57,7 +57,7 @@ export interface PayoutVault$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {"1894":[{"length":32,"start":2217}],"1950":[{"length":32,"start":1217},{"length":32,"start":1456}]};
   readonly inputSourceName: "project/contracts/PayoutVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 import "hardhat/types/artifacts";

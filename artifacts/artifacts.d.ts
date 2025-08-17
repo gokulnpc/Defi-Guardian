@@ -9,9 +9,6 @@ declare module "hardhat/types/artifacts" {
   interface ArtifactMap {
     ["Client"]: never
     ["IRouterClient"]: never
-    ["IVotingMirror"]: never
-    ["CCIPReceiver"]: never
-    ["MockCCIPRouter"]: never
-    ["MockPYUSD"]: never;
+    ["CCIPReceiver"]: never;
   }
 }

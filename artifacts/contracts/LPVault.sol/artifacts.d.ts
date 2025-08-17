@@ -15,7 +15,7 @@ export interface Client$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/LPVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 export interface IRouterClient$Type {
@@ -29,7 +29,7 @@ export interface IRouterClient$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {};
   readonly inputSourceName: "project/contracts/LPVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 export interface LPVault$Type {
@@ -43,7 +43,7 @@ export interface LPVault$Type {
   readonly deployedLinkReferences: {};
   readonly immutableReferences: {"1226":[{"length":32,"start":1249},{"length":32,"start":1564},{"length":32,"start":2210},{"length":32,"start":2324},{"length":32,"start":2413}],"1229":[{"length":32,"start":3574},{"length":32,"start":4295},{"length":32,"start":4522}]};
   readonly inputSourceName: "project/contracts/LPVault.sol";
-  readonly buildInfoId: "solc-0_8_24-39504a4a25f856d89ece298a3bc10b3a6d134baf";
+  readonly buildInfoId: "solc-0_8_24-b035b74c92f311ac017567d8d98b68bffacdc74e";
 };
 
 import "hardhat/types/artifacts";
