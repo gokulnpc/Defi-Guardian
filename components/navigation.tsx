@@ -8,9 +8,6 @@ import { Menu, Shield, Vote, FileText, Coins, BarChart3 } from "lucide-react";
 import { ConnectWalletButton } from "@/components/wallet/connect-wallet-button";
 
 const navItems = [
-  { name: "Marketplace", href: "/marketplace", icon: Shield },
-  { name: "Stake", href: "/stake", icon: Coins },
-  { name: "Claims", href: "/claims", icon: FileText },
   { name: "Governance", href: "/governance", icon: Vote },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
 ];
