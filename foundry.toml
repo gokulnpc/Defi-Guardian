@@ -7,9 +7,7 @@ optimizer = true
 optimizer_runs = 200
 
 [rpc_endpoints]
-arbitrum = "https://arb1.arbitrum.io/rpc"
-arbitrum_sepolia = "https://sepolia-rollup.arbitrum.io/rpc"
+sepolia = "https://sepolia.drpc.org"
 
 [etherscan]
-arbitrum = { key = "${ARBISCAN_API_KEY}" }
-arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}" }
+sepolia = { key = "YOUR_ETHERSCAN_API_KEY" }
