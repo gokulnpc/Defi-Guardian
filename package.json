@@ -1,22 +1,14 @@
 {
-  "name": "my-v0-project",
+  "name": "defi-guardians",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "compile": "hardhat compile",
-    "test": "hardhat test",
-    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
-    "configure:sepolia": "CONFIGURE_NETWORK=sepolia hardhat run scripts/configure-allowlists.js --network sepolia",
-    "configure:hedera": "CONFIGURE_NETWORK=hedera hardhat run scripts/configure-allowlists.js --network hedera",
-    "node": "hardhat node",
-    "clean": "hardhat clean"
+    "start": "next start"
   },
   "dependencies": {
-    "@chainlink/contracts-ccip": "^1.6.0",
     "@dynamic-labs/embedded-wallet": "^4.27.0",
     "@dynamic-labs/ethereum": "^4.27.0",
     "@dynamic-labs/sdk-react-core": "^4.27.0",
@@ -57,7 +49,6 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
-    "dotenv": "^16.3.1",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "^12.23.12",
     "geist": "^1.3.1",
@@ -80,30 +71,11 @@
     "zod": "3.25.67"
   },
   "devDependencies": {
-    "@chainlink/contracts": "^1.4.0",
-    "@nomicfoundation/hardhat-chai-matchers": "^2.0.2",
-    "@nomicfoundation/hardhat-ethers": "^3.0.4",
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
-    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "@nomicfoundation/hardhat-verify": "^2.0.1",
-    "@openzeppelin/contracts": "^5.4.0",
-    "@tailwindcss/postcss": "^4.1.9",
-    "@typechain/ethers-v6": "^0.4.3",
-    "@typechain/hardhat": "^9.1.0",
-    "@types/chai": "^4.3.5",
-    "@types/mocha": "^10.0.1",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "chai": "^4.3.7",
-    "ethers": "^6.8.1",
-    "hardhat": "^2.19.1",
-    "hardhat-gas-reporter": "^1.0.9",
     "postcss": "^8.5",
-    "solidity-coverage": "^0.8.4",
     "tailwindcss": "^4.1.9",
-    "tw-animate-css": "1.3.3",
-    "typechain": "^8.3.1",
     "typescript": "^5"
   }
 }
