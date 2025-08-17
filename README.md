@@ -6,9 +6,17 @@
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.24-blue.svg)](https://soliditylang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org/)
 [![Chainlink CCIP](https://img.shields.io/badge/Chainlink-CCIP-375bd2.svg)](https://chain.link/)
+[![PYUSD](https://img.shields.io/badge/PYUSD-PayPal-003087.svg)](https://pyusd.to/)
+[![Dynamic](https://img.shields.io/badge/Dynamic-Wallet-6C47FF.svg)](https://dynamic.xyz/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-> 🏆 **Competing for Hardhat 3 Best Projects Prize** - A fully decentralized insurance protocol leveraging cutting-edge cross-chain technology and modern web development.
+## 🏆 Hackathon Tracks
+
+**DeFi Guardians is competing in multiple tracks:**
+
+- **🔗 Chainlink CCIP Best Usage** ($6,000) - Revolutionary cross-chain insurance using CCIP for seamless Sepolia ↔ Hedera communication
+- **🚀 PYUSD Most Innovative Payment** ($3,500) - Novel cross-chain insurance premium splitting and claim payout automation
+- **👷 Hardhat 3 Best Projects** ($5,000) - Built entirely with Hardhat 3 Beta featuring 154 comprehensive tests, lightning-fast compilation, cross-chain deployment capabilities, and modern TypeScript integration demonstrating the full potential of next-generation Solidity development
 
 ## 🌟 Project Overview
 
@@ -16,12 +24,13 @@ DeFi Guardians is a revolutionary cross-chain decentralized insurance protocol t
 
 ### 🎯 Key Features
 
-- **🔗 Cross-Chain Architecture**: Seamless operation between Arbitrum (Sepolia) and Hedera Testnet using Chainlink CCIP
+- **🔗 Cross-Chain Architecture**: Seamless operation between Sepolia (Sepolia) and Hedera Testnet using Chainlink CCIP
 - **💰 Liquidity Provider Rewards**: 70% of premiums distributed to LPs, 30% reserved for claims
 - **🗳️ Decentralized Governance**: LP-based voting system for claim validation
 - **🌐 Modern Web Interface**: Built with Next.js 15, TypeScript, and Tailwind CSS
 - **📱 Mobile-First Design**: Responsive interface optimized for all devices
-- **🔐 Multi-Wallet Support**: Integration with Dynamic Labs for comprehensive wallet connectivity
+- **🔐 Dynamic Wallet Integration**: Embedded wallet infrastructure with seamless user onboarding
+- **💼 One-Click Financial Operations**: Simplified PYUSD insurance purchases and claim processing
 - **⚡ Real-Time Updates**: Live dashboard with policy status and claim tracking
 
 ## 🏗️ Architecture Overview
@@ -30,7 +39,7 @@ DeFi Guardians is a revolutionary cross-chain decentralized insurance protocol t
 
 ```
 ┌─────────────────┐    CCIP     ┌─────────────────┐
-│   Arbitrum      │◄────────────►│     Hedera      │
+│   Sepolia       │◄────────────►│     Hedera      │
 │                 │              │                 │
 │ • PremiumVault  │              │ • PolicyManager │
 │ • LPVault       │              │ • ClaimManager  │
@@ -96,49 +105,24 @@ pnpm test
 pnpm test:simple
 ```
 
-### Environment Configuration
-
-Create a `.env.local` file with the following variables:
-
-```env
-# Wallet Configuration
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
-
-# Network Configuration
-NEXT_PUBLIC_ARBITRUM_RPC_URL=https://sepolia-rollup.arbitrum.io/rpc
-NEXT_PUBLIC_HEDERA_RPC_URL=https://testnet.hashio.io/api
-
-# Contract Addresses (Testnet)
-NEXT_PUBLIC_PREMIUM_VAULT_ADDRESS=0x8CDBf091e385D0D4A7e8bf7D9AE11d69647bF499
-NEXT_PUBLIC_LP_VAULT_ADDRESS=0xEC1f7B099c0a984badF83222aeb61f1e4cd7dB97
-NEXT_PUBLIC_PAYOUT_VAULT_ADDRESS=0x6f5421f96786F69609b3f2d15A268A5c4cbD6dEc
-NEXT_PUBLIC_POLICY_MANAGER_ADDRESS=0xd1b6BEa5A3b3dd4836100f5C55877c59d4666569
-NEXT_PUBLIC_CLAIM_MANAGER_ADDRESS=0x9D4646f64dF7D98c6a83D60a9Af06c67a9eE0215
-NEXT_PUBLIC_VOTING_MIRROR_ADDRESS=0xe1C31E56De989192946f096eBA8Ed709C2Ec9003
-
-# CCIP Configuration
-NEXT_PUBLIC_ARBITRUM_CHAIN_SELECTOR=3478487238524512106
-NEXT_PUBLIC_HEDERA_CHAIN_SELECTOR=1264547569
-```
-
 ## 📋 Smart Contracts
 
 ### Core Contracts
 
-| Contract          | Network  | Purpose                                       |
-| ----------------- | -------- | --------------------------------------------- |
-| **PremiumVault**  | Arbitrum | Handles premium payments and CCIP messaging   |
-| **LPVault**       | Arbitrum | Manages liquidity provider stakes and rewards |
-| **PayoutVault**   | Arbitrum | Holds reserves and processes claim payouts    |
-| **PolicyManager** | Hedera   | Issues policy NFTs and manages coverage       |
-| **ClaimManager**  | Hedera   | Processes claims and manages voting           |
-| **VotingMirror**  | Hedera   | Mirrors LP voting power from Arbitrum         |
+| Contract          | Network | Purpose                                       |
+| ----------------- | ------- | --------------------------------------------- |
+| **PremiumVault**  | Sepolia | Handles premium payments and CCIP messaging   |
+| **LPVault**       | Sepolia | Manages liquidity provider stakes and rewards |
+| **PayoutVault**   | Sepolia | Holds reserves and processes claim payouts    |
+| **PolicyManager** | Hedera  | Issues policy NFTs and manages coverage       |
+| **ClaimManager**  | Hedera  | Processes claims and manages voting           |
+| **VotingMirror**  | Hedera  | Mirrors LP voting power from Sepolia          |
 
 ### Contract Deployment
 
 ```bash
-# Deploy to Arbitrum Sepolia
-pnpm deploy:arbitrum
+# Deploy to Sepolia Sepolia
+pnpm deploy:sepolia
 
 # Deploy to Hedera Testnet
 pnpm deploy:hedera
@@ -274,7 +258,7 @@ pnpm test:a11y
 
 ### Testnet Deployments
 
-| Contract      | Arbitrum Sepolia                             | Hedera Testnet                               |
+| Contract      | Sepolia Sepolia                              | Hedera Testnet                               |
 | ------------- | -------------------------------------------- | -------------------------------------------- |
 | PremiumVault  | `0x8CDBf091e385D0D4A7e8bf7D9AE11d69647bF499` | -                                            |
 | LPVault       | `0xEC1f7B099c0a984badF83222aeb61f1e4cd7dB97` | -                                            |
@@ -291,55 +275,6 @@ pnpm test:a11y
 - ✅ Frontend production build tested
 - ⏳ External audit pending
 - ⏳ Mainnet deployment planned
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Process
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Standards
-
-- **Solidity**: Follow the [Solidity Style Guide](https://docs.soliditylang.org/en/latest/style-guide.html)
-- **TypeScript**: Use ESLint and Prettier configurations
-- **Testing**: Maintain 100% test coverage for smart contracts
-- **Documentation**: Include JSDoc comments for all functions
-
-## 📈 Roadmap
-
-### Phase 1: Foundation (Q1 2024) ✅
-
-- ✅ Core smart contract development
-- ✅ Cross-chain integration with CCIP
-- ✅ Basic frontend interface
-- ✅ Testnet deployment
-
-### Phase 2: Enhancement (Q2 2024) 🚧
-
-- 🚧 Advanced governance features
-- 🚧 Mobile app development
-- 🚧 Additional protocol integrations
-- ⏳ Security audit
-
-### Phase 3: Expansion (Q3 2024) 📋
-
-- 📋 Mainnet deployment
-- 📋 Additional blockchain support
-- 📋 Institutional features
-- 📋 DAO governance token
-
-### Phase 4: Scaling (Q4 2024) 📋
-
-- 📋 Layer 2 integrations
-- 📋 Advanced analytics
-- 📋 API for developers
-- 📋 Global expansion
 
 ## 💡 Use Cases
 
@@ -361,7 +296,7 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 - **📊 Risk Analytics**: Access detailed risk assessment data
 - **🤝 Partnership**: Integrate insurance into your protocol
 
-## 🏆 Why DeFi Guardians?
+## 🏆 Why DeFi Guardians Wins
 
 ### 🎯 Market Need
 
@@ -383,22 +318,6 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 - **Transparent**: All operations visible on-chain
 - **Composable**: Easily integrated into existing DeFi protocols
 
-## 📞 Support & Community
-
-### Get Help
-
-- **📚 Documentation**: Comprehensive guides and API references
-- **💬 Discord**: Join our community for real-time support
-- **🐛 GitHub Issues**: Report bugs and request features
-- **📧 Email**: contact@defiguardians.io
-
-### Community Links
-
-- **🐦 Twitter**: [@DeFiGuardians](https://twitter.com/defiguardians)
-- **💬 Discord**: [Join our server](https://discord.gg/defiguardians)
-- **📢 Telegram**: [DeFi Guardians Chat](https://t.me/defiguardians)
-- **📖 Medium**: [Our Blog](https://medium.com/@defiguardians)
-
 ## 👥 Team Members
 
 **DeFi Guardians Core Team:**
@@ -414,29 +333,6 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 - **[Hedera](https://hedera.com/)** for high-performance distributed ledger technology
 - **[Dynamic Labs](https://dynamic.xyz/)** for seamless wallet connectivity
 - **[Vercel](https://vercel.com/)** for hosting and deployment infrastructure
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Repository Structure
-
-```
-defi-guardians/
-├── contracts/                 # Smart contracts
-├── contracts-repo/           # Submodule: Additional contracts
-├── app/                      # Next.js app directory
-├── components/               # React components
-├── hooks/                    # Custom React hooks
-├── lib/                      # Utility libraries
-├── public/                   # Static assets
-├── scripts/                  # Deployment scripts
-├── test/                     # Contract tests
-├── types/                    # TypeScript definitions
-└── docs/                     # Documentation
-```
-
----
 
 ### 🏆 **Built with Hardhat 3 & Next.js 15 - The Future of DeFi Protection**
 
