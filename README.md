@@ -403,8 +403,8 @@ We welcome contributions from the community! Please see our [Contributing Guidel
 
 **DeFi Guardians Core Team:**
 
-- **[Gokuleshwaran Narayanan](https://github.com/gokulnpc)** - Lead Developer & Smart Contract Architect
-- **[Jash Mehta](https://github.com/jashmehta-qds)** - Frontend Developer & UI/UX Designer
+- **[Gokuleshwaran Narayanan](https://github.com/gokulnpc)**
+- **[Jash Mehta](https://github.com/jashmehta-qds)**
 
 ## 🙏 Acknowledgments
 
