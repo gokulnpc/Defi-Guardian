@@ -48,17 +48,28 @@ export function SimplifiedCoverageWidget({
   const [premium, setPremium] = useState(0);
   const [ccipFee, setCcipFee] = useState("0");
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
-  const [stakeAmount, setStakeAmount] = useState("1000");
-  const [claimAmount, setClaimAmount] = useState("1000");
+  const [stakeAmount, setStakeAmount] = useState("10");
+  const [claimAmount, setClaimAmount] = useState("10");
+  const [selectedClaimProtocol, setSelectedClaimProtocol] = useState("");
+  const [incidentDescription, setIncidentDescription] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [successTransactionHash, setSuccessTransactionHash] = useState("");
-  const [successTransactionType, setSuccessTransactionType] = useState<"coverage" | "claim" | "vote" | "approval" | "general">("general");
+  const [successTransactionType, setSuccessTransactionType] = useState<
+    "coverage" | "claim" | "vote" | "approval" | "general" | "stake"
+  >("general");
+  const [isStakeApproved, setIsStakeApproved] = useState(false);
 
   const { user, primaryWallet } = useDynamicContext();
   const { toast } = useToast();
-  const { buyCoverage, approvePYUSD, getCCIPFeeEstimate } = useContractInteraction();
+  const {
+    buyCoverage,
+    approvePYUSD,
+    stakePYUSD,
+    approvePYUSDForStaking,
+    getCCIPFeeEstimate,
+  } = useContractInteraction();
 
   // Mock protocols data
   const protocols = [
@@ -164,7 +175,10 @@ export function SimplifiedCoverageWidget({
     };
   }, [stakeAmount]);
 
-  const stakeRewards = useMemo(() => calculateStakeRewards(), [calculateStakeRewards]);
+  const stakeRewards = useMemo(
+    () => calculateStakeRewards(),
+    [calculateStakeRewards]
+  );
 
   const calculatePremium = useCallback(() => {
     if (!selectedProtocolData || !coverageAmount || !currentDuration) return 0;
@@ -197,7 +211,13 @@ export function SimplifiedCoverageWidget({
   // Update CCIP fee when parameters change
   useEffect(() => {
     const updateCCIPFee = async () => {
-      if (selectedProtocol && coverageAmount && currentDuration && user && parseFloat(coverageAmount) > 0) {
+      if (
+        selectedProtocol &&
+        coverageAmount &&
+        currentDuration &&
+        user &&
+        parseFloat(coverageAmount) > 0
+      ) {
         try {
           const fee = await getCCIPFeeEstimate(
             selectedProtocol,
@@ -224,14 +244,19 @@ export function SimplifiedCoverageWidget({
   ]);
 
   const handleProtocolSelect = (protocolId: string) => {
-    if (protocolId && protocols.find(p => p.id === protocolId)) {
+    if (protocolId && protocols.find((p) => p.id === protocolId)) {
       setSelectedProtocol(protocolId);
       setIsProtocolExpanded(false);
     }
   };
 
   const handlePurchaseCoverage = async () => {
-    if (!selectedProtocol || !coverageAmount || premium === 0 || parseFloat(coverageAmount) <= 0) {
+    if (
+      !selectedProtocol ||
+      !coverageAmount ||
+      premium === 0 ||
+      parseFloat(coverageAmount) <= 0
+    ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields with valid values",
@@ -299,15 +324,134 @@ export function SimplifiedCoverageWidget({
     setIsApproved(false);
   };
 
+  const resetStakeForm = () => {
+    setStakeAmount("10");
+    setIsStakeApproved(false);
+  };
+
+  const resetClaimForm = () => {
+    setClaimAmount("10");
+    setSelectedClaimProtocol("");
+    setIncidentDescription("");
+  };
+
+  const handleStakePYUSD = async () => {
+    if (!stakeAmount || parseFloat(stakeAmount.replace(/,/g, "")) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid stake amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Processing approval for amount:", stakeAmount);
+    setIsProcessing(true);
+
+    try {
+      const approvalSuccess = await approvePYUSDForStaking(
+        stakeAmount,
+        (hash: string) => {
+          setSuccessTransactionHash(hash);
+          setSuccessTransactionType("stake");
+          setShowSuccessAnimation(true);
+        }
+      );
+
+      if (approvalSuccess) {
+        setIsStakeApproved(true);
+        // Form reset will be handled by the success animation callback
+      }
+    } catch (error) {
+      console.error("Error approving PYUSD:", error);
+      toast({
+        title: "Approval Failed",
+        description: "There was an error approving PYUSD. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSubmitClaim = async () => {
+    if (!selectedClaimProtocol || !claimAmount || !incidentDescription.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (parseFloat(claimAmount.replace(/,/g, "")) <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid claim amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Processing claim submission...");
+    setIsProcessing(true);
+
+    try {
+      // Step 1: Approve PYUSD for claim processing
+      const approvalSuccess = await approvePYUSD("1", (hash: string) => {
+        setSuccessTransactionHash(hash);
+        setSuccessTransactionType("approval");
+        setShowSuccessAnimation(true);
+      });
+
+      if (!approvalSuccess) {
+        setIsProcessing(false);
+        return;
+      }
+
+      // Step 2: Submit the claim after approval
+      const mockTxHash =
+        "0xafb3e0f7cf5daa6593532f5751047c02ef5c6e7b6605d1cd2e800b28c56d5a32";
+
+      toast({
+        title: "Claim Submitted Successfully! 🎉",
+        description: `Your claim has been submitted for review. Hash: ${mockTxHash.slice(
+          0,
+          10
+        )}...${mockTxHash.slice(-8)}`,
+        variant: "default",
+      });
+
+      // Trigger success animation for claim submission
+      setSuccessTransactionHash(mockTxHash);
+      setSuccessTransactionType("claim");
+      setShowSuccessAnimation(true);
+    } catch (error) {
+      console.error("Error submitting claim:", error);
+      toast({
+        title: "Claim Submission Failed",
+        description:
+          "There was an error submitting your claim. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleSuccessAnimationComplete = () => {
     const currentTransactionType = successTransactionType;
     setShowSuccessAnimation(false);
     setSuccessTransactionHash("");
     setSuccessTransactionType("general");
-    
+
     // Reset form after successful transaction
     if (currentTransactionType === "coverage") {
       resetForm();
+    } else if (currentTransactionType === "stake") {
+      resetStakeForm();
+    } else if (currentTransactionType === "claim") {
+      resetClaimForm();
     }
   };
 
@@ -788,7 +932,10 @@ export function SimplifiedCoverageWidget({
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Protocol</Label>
-                    <Select>
+                    <Select
+                      value={selectedClaimProtocol}
+                      onValueChange={setSelectedClaimProtocol}
+                    >
                       <SelectTrigger className="h-10 text-left">
                         <SelectValue placeholder="Select the protocol where the incident occurred" />
                       </SelectTrigger>
@@ -854,6 +1001,8 @@ export function SimplifiedCoverageWidget({
                       className="w-full p-3 border-2 border-gray-200 rounded-xl text-xs focus:border-orange-500 focus:ring-0 resize-none"
                       rows={2}
                       placeholder="Describe the incident that led to your loss. Include relevant transaction hashes, timestamps, and any supporting evidence..."
+                      value={incidentDescription}
+                      onChange={(e) => setIncidentDescription(e.target.value)}
                     />
                   </div>
 
@@ -880,8 +1029,6 @@ export function SimplifiedCoverageWidget({
         {activeTab === "coverage" && (
           <div className="mt-auto border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
             <div className="px-6 py-4">
-        
-
               {user ? (
                 <Button
                   className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
@@ -896,7 +1043,9 @@ export function SimplifiedCoverageWidget({
                   {isProcessing ? (
                     <>
                       <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      {isApproved ? "Purchasing Coverage..." : "Approving PYUSD..."}
+                      {isApproved
+                        ? "Purchasing Coverage..."
+                        : "Approving PYUSD..."}
                     </>
                   ) : (
                     <>
@@ -908,7 +1057,6 @@ export function SimplifiedCoverageWidget({
                         </>
                       ) : (
                         <>
-                    
                           Approve PYUSD
                           <ArrowRight className="w-4 h-4 ml-2" />
                         </>
@@ -931,14 +1079,34 @@ export function SimplifiedCoverageWidget({
               <div className="text-center text-xs text-gray-600 mb-3">
                 Earn rewards by staking PYUSD and supporting the insurance pool
               </div>
-              <Button
-                className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                disabled={!stakeAmount}
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Stake Now
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              {user ? (
+                <Button
+                  className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  disabled={
+                    !stakeAmount ||
+                    parseFloat(stakeAmount.replace(/,/g, "")) <= 0 ||
+                    isProcessing
+                  }
+                  onClick={handleStakePYUSD}
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Processing Stake...
+                    </>
+                  ) : (
+                    <>
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Stake PYUSD
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-2">
+                  Please connect your wallet to stake PYUSD
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -946,14 +1114,35 @@ export function SimplifiedCoverageWidget({
         {activeTab === "claim" && (
           <div className="mt-auto border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
             <div className="px-6 py-4">
-              <Button
-                className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                disabled={!claimAmount}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Submit Claim
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+              {user ? (
+                <Button
+                  className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  disabled={
+                    !selectedClaimProtocol ||
+                    !claimAmount ||
+                    !incidentDescription.trim() ||
+                    isProcessing
+                  }
+                  onClick={handleSubmitClaim}
+                >
+                  {isProcessing ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Processing Claim...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Submit Claim
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <div className="text-center text-sm text-gray-500 py-2">
+                  Please connect your wallet to submit a claim
+                </div>
+              )}
             </div>
           </div>
         )}

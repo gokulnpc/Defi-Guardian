@@ -1,0 +1,155 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IPremiumVault",
+  "sourceName": "test/interfaces/IPremiumVault.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "dstChainSelector",
+          "type": "uint64"
+        },
+        {
+          "internalType": "bytes",
+          "name": "hederaReceiver",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "poolId",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coverageAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint64",
+              "name": "startTs",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "endTs",
+              "type": "uint64"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "policyRef",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IPremiumVault.PolicyTerms",
+          "name": "terms",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "premiumPYUSD",
+          "type": "uint256"
+        }
+      ],
+      "name": "buyCoverage",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "premiumPYUSD",
+          "type": "uint256"
+        }
+      ],
+      "name": "previewAllocation",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "toLP",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "toReserve",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "dstChainSelector",
+          "type": "uint64"
+        },
+        {
+          "internalType": "bytes",
+          "name": "hederaReceiver",
+          "type": "bytes"
+        },
+        {
+          "components": [
+            {
+              "internalType": "bytes32",
+              "name": "poolId",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "coverageAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint64",
+              "name": "startTs",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint64",
+              "name": "endTs",
+              "type": "uint64"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "policyRef",
+              "type": "bytes32"
+            }
+          ],
+          "internalType": "struct IPremiumVault.PolicyTerms",
+          "name": "terms",
+          "type": "tuple"
+        }
+      ],
+      "name": "quoteCCIPFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/test/interfaces/IPremiumVault.sol",
+  "buildInfoId": "solc-0_8_24-7206415546ac20b85133b31bb5c4efa2e6b80e38"
+}

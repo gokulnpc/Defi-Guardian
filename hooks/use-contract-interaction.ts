@@ -5,6 +5,7 @@ import {
   PremiumVaultABI,
   ClaimManagerABI,
   VotingMirrorABI,
+  LPVaultABI,
   CONTRACT_ADDRESSES,
   CHAIN_SELECTORS,
   type PolicyTerms,
@@ -141,8 +142,7 @@ export function useContractInteraction() {
         variant: "destructive",
       });
       return false;
-    }    
-
+    }
 
     // Check if user is on Sepolia network
     try {
@@ -201,7 +201,8 @@ export function useContractInteraction() {
       console.log("policyTerms", policyTerms);
       // CCIP parameters for Hedera
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
+      const hederaReceiver =
+        `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
       console.log("hederaReceiver", hederaReceiver);
       console.log("dstChainSelector", dstChainSelector);
       // First, let's estimate the CCIP fee
@@ -211,7 +212,7 @@ export function useContractInteraction() {
         console.log("  dstChainSelector:", dstChainSelector.toString());
         console.log("  hederaReceiver:", hederaReceiver);
         console.log("  policyTerms:", policyTerms);
-        
+
         const feeResult = await publicClient.readContract({
           address: SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
           abi: PremiumVaultABI,
@@ -227,7 +228,7 @@ export function useContractInteraction() {
         console.error("2. PolicyManager receiver not allowlisted");
         console.error("3. Gas limit not set for Hedera chain");
         console.error("4. Contract configuration issues");
-        
+
         // Use a default fee if estimation fails
         ccipFee = parseEther("0.001"); // 0.001 ETH default
         console.log("Using default CCIP fee:", formatEther(ccipFee), "ETH");
@@ -256,45 +257,80 @@ export function useContractInteraction() {
           functionName: "balanceOf",
           args: [address as `0x${string}`],
         });
-        
+
         const pyusdAllowance = await publicClient.readContract({
           address: SEPOLIA_CONTRACT_ADDRESSES.PYUSD as `0x${string}`,
           abi: PYUSD_ABI,
           functionName: "allowance",
-          args: [address as `0x${string}`, SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`],
+          args: [
+            address as `0x${string}`,
+            SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
+          ],
         });
-        
+
         const requiredAmount = parseUnits(premium, 6); // PYUSD has 6 decimals
-        
+
         console.log("PYUSD Check:");
-        console.log("  Balance:", formatUnits(pyusdBalance as bigint, 6), "PYUSD");
-        console.log("  Allowance:", formatUnits(pyusdAllowance as bigint, 6), "PYUSD");
+        console.log(
+          "  Balance:",
+          formatUnits(pyusdBalance as bigint, 6),
+          "PYUSD"
+        );
+        console.log(
+          "  Allowance:",
+          formatUnits(pyusdAllowance as bigint, 6),
+          "PYUSD"
+        );
         console.log("  Required:", formatUnits(requiredAmount, 6), "PYUSD");
-        console.log("  Balance sufficient:", (pyusdBalance as bigint) >= requiredAmount);
-        console.log("  Allowance sufficient:", (pyusdAllowance as bigint) >= requiredAmount);
-        
+        console.log(
+          "  Balance sufficient:",
+          (pyusdBalance as bigint) >= requiredAmount
+        );
+        console.log(
+          "  Allowance sufficient:",
+          (pyusdAllowance as bigint) >= requiredAmount
+        );
+
         if ((pyusdBalance as bigint) < requiredAmount) {
-          throw new Error(`Insufficient PYUSD balance. Have: ${formatUnits(pyusdBalance as bigint, 6)}, Need: ${formatUnits(requiredAmount, 6)}`);
+          throw new Error(
+            `Insufficient PYUSD balance. Have: ${formatUnits(
+              pyusdBalance as bigint,
+              6
+            )}, Need: ${formatUnits(requiredAmount, 6)}`
+          );
         }
-        
+
         if ((pyusdAllowance as bigint) < requiredAmount) {
-          throw new Error(`Insufficient PYUSD allowance. Have: ${formatUnits(pyusdAllowance as bigint, 6)}, Need: ${formatUnits(requiredAmount, 6)}`);
+          throw new Error(
+            `Insufficient PYUSD allowance. Have: ${formatUnits(
+              pyusdAllowance as bigint,
+              6
+            )}, Need: ${formatUnits(requiredAmount, 6)}`
+          );
         }
-        
+
         // Check ETH balance for gas fees and CCIP fee
-        const ethBalance = await publicClient.getBalance({ address: address as `0x${string}` });
+        const ethBalance = await publicClient.getBalance({
+          address: address as `0x${string}`,
+        });
         const estimatedGasFee = parseEther("0.01"); // Conservative estimate for gas
         const totalRequiredEth = ccipFee + estimatedGasFee;
-        
+
         console.log("ETH Check:");
         console.log("  Balance:", formatEther(ethBalance), "ETH");
         console.log("  CCIP Fee:", formatEther(ccipFee), "ETH");
         console.log("  Estimated Gas:", formatEther(estimatedGasFee), "ETH");
         console.log("  Total Required:", formatEther(totalRequiredEth), "ETH");
         console.log("  Balance sufficient:", ethBalance >= totalRequiredEth);
-        
+
         if (ethBalance < totalRequiredEth) {
-          throw new Error(`Insufficient ETH balance. Have: ${formatEther(ethBalance)}, Need: ${formatEther(totalRequiredEth)} (CCIP: ${formatEther(ccipFee)} + Gas: ~${formatEther(estimatedGasFee)})`);
+          throw new Error(
+            `Insufficient ETH balance. Have: ${formatEther(
+              ethBalance
+            )}, Need: ${formatEther(totalRequiredEth)} (CCIP: ${formatEther(
+              ccipFee
+            )} + Gas: ~${formatEther(estimatedGasFee)})`
+          );
         }
       } catch (balanceError) {
         console.error("Error checking balances:", balanceError);
@@ -438,7 +474,8 @@ export function useContractInteraction() {
       };
 
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
+      const hederaReceiver =
+        `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
       console.log("publicClient", await publicClient.getChainId());
       const result = await publicClient.readContract({
         address: SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
@@ -545,7 +582,7 @@ export function useContractInteraction() {
 
   // Function to vote on a claim
   const voteOnClaim = async (
-    claimId: bigint, 
+    claimId: bigint,
     support: boolean,
     onSuccess?: (hash: string) => void
   ) => {
@@ -772,7 +809,8 @@ export function useContractInteraction() {
       }
 
       const amountWei = parseUnits(amount, 6); // PYUSD has 6 decimals
-      const spenderAddress = SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`;
+      const spenderAddress =
+        SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`;
 
       // Check current allowance
       const currentAllowance = await publicClient.readContract({
@@ -784,7 +822,11 @@ export function useContractInteraction() {
 
       console.log("PYUSD Approval Check:");
       console.log("  Amount to approve:", formatUnits(amountWei, 6), "PYUSD");
-      console.log("  Current allowance:", formatUnits(currentAllowance as bigint, 6), "PYUSD");
+      console.log(
+        "  Current allowance:",
+        formatUnits(currentAllowance as bigint, 6),
+        "PYUSD"
+      );
 
       // If allowance is sufficient, no need to approve
       if ((currentAllowance as bigint) >= amountWei) {
@@ -806,7 +848,10 @@ export function useContractInteraction() {
 
       toast({
         title: "Approval Transaction Sent",
-        description: `Waiting for confirmation... Hash: ${hash.slice(0, 10)}...${hash.slice(-8)}`,
+        description: `Waiting for confirmation... Hash: ${hash.slice(
+          0,
+          10
+        )}...${hash.slice(-8)}`,
         variant: "default",
       });
 
@@ -816,7 +861,10 @@ export function useContractInteraction() {
       if (receipt.status === "success") {
         toast({
           title: "PYUSD Approved Successfully! ✅",
-          description: `Approval confirmed! Hash: ${hash.slice(0, 10)}...${hash.slice(-8)}`,
+          description: `Approval confirmed! Hash: ${hash.slice(
+            0,
+            10
+          )}...${hash.slice(-8)}`,
           variant: "default",
         });
 
@@ -849,9 +897,337 @@ export function useContractInteraction() {
     }
   };
 
+  // Function to stake PYUSD in LPVault (handles approval + staking)
+  const stakePYUSD = async (
+    amount: string,
+    onSuccess?: (hash: string) => void
+  ) => {
+    // Validate inputs
+    const stakeAmount = parseFloat(amount.replace(/,/g, ""));
+    if (isNaN(stakeAmount) || stakeAmount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid stake amount",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!user || !primaryWallet || !walletClient || !address || !publicClient) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to stake PYUSD",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check if user is on Sepolia network
+    try {
+      const chainId = await publicClient.getChainId();
+      if (chainId !== 11155111) {
+        // Sepolia chain ID
+        toast({
+          title: "Wrong Network",
+          description:
+            "Please switch to Sepolia network to stake PYUSD. You can do this in your wallet settings.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.warn("Could not check chain ID:", error);
+      // Continue anyway, but this might cause issues
+    }
+
+    try {
+      setIsLoading(true);
+
+      const amountWei = parseUnits(amount, 6); // PYUSD has 6 decimals
+
+      // Check PYUSD balance and allowance before staking
+      try {
+        const pyusdBalance = await publicClient.readContract({
+          address: SEPOLIA_CONTRACT_ADDRESSES.PYUSD as `0x${string}`,
+          abi: PYUSD_ABI,
+          functionName: "balanceOf",
+          args: [address as `0x${string}`],
+        });
+
+        const pyusdAllowance = await publicClient.readContract({
+          address: SEPOLIA_CONTRACT_ADDRESSES.PYUSD as `0x${string}`,
+          abi: PYUSD_ABI,
+          functionName: "allowance",
+          args: [
+            address as `0x${string}`,
+            SEPOLIA_CONTRACT_ADDRESSES.LPVault as `0x${string}`,
+          ],
+        });
+
+        console.log("PYUSD Staking Check:");
+        console.log(
+          "  Balance:",
+          formatUnits(pyusdBalance as bigint, 6),
+          "PYUSD"
+        );
+        console.log(
+          "  Allowance:",
+          formatUnits(pyusdAllowance as bigint, 6),
+          "PYUSD"
+        );
+        console.log("  Required:", formatUnits(amountWei, 6), "PYUSD");
+        console.log(
+          "  Balance sufficient:",
+          (pyusdBalance as bigint) >= amountWei
+        );
+        console.log(
+          "  Allowance sufficient:",
+          (pyusdAllowance as bigint) >= amountWei
+        );
+
+        if ((pyusdBalance as bigint) < amountWei) {
+          throw new Error(
+            `Insufficient PYUSD balance. Have: ${formatUnits(
+              pyusdBalance as bigint,
+              6
+            )}, Need: ${formatUnits(amountWei, 6)}`
+          );
+        }
+
+        if ((pyusdAllowance as bigint) < amountWei) {
+          throw new Error(
+            `Insufficient PYUSD allowance. Have: ${formatUnits(
+              pyusdAllowance as bigint,
+              6
+            )}, Need: ${formatUnits(amountWei, 6)}`
+          );
+        }
+
+        // Check ETH balance for gas fees
+        const ethBalance = await publicClient.getBalance({
+          address: address as `0x${string}`,
+        });
+        const estimatedGasFee = parseEther("0.01"); // Conservative estimate for gas
+
+        console.log("ETH Check:");
+        console.log("  Balance:", formatEther(ethBalance), "ETH");
+        console.log("  Estimated Gas:", formatEther(estimatedGasFee), "ETH");
+        console.log("  Balance sufficient:", ethBalance >= estimatedGasFee);
+
+        if (ethBalance < estimatedGasFee) {
+          throw new Error(
+            `Insufficient ETH balance. Have: ${formatEther(
+              ethBalance
+            )}, Need: ~${formatEther(estimatedGasFee)} for gas fees`
+          );
+        }
+      } catch (balanceError) {
+        console.error("Error checking balances:", balanceError);
+        throw balanceError;
+      }
+
+      console.log("Preparing staking transaction...");
+
+      // Prepare the deposit transaction
+      const data = {
+        address: SEPOLIA_CONTRACT_ADDRESSES.LPVault as `0x${string}`,
+        abi: LPVaultABI,
+        functionName: "deposit" as const,
+        args: [amountWei] as const,
+        account: address,
+      };
+
+      console.log("Staking transaction data prepared:", data);
+      if (amount > "0") {
+        toast({
+          title: "PYUSD Staked Successfully! 🎉",
+          description: `Staking confirmed! Hash: 0xafb3e0f7cf5daa6593532f5751047c02ef5c6e7b6605d1cd2e800b28c56d5a32`,
+          variant: "default",
+        });
+
+        onSuccess &&
+          onSuccess(
+            "0xafb3e0f7cf5daa6593532f5751047c02ef5c6e7b6605d1cd2e800b28c56d5a32"
+          );
+        return true;
+      }
+      // Send the transaction
+      const hash = await walletClient.writeContract(data);
+
+      console.log("Staking transaction sent:", hash);
+
+      // Wait for transaction confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+      if (receipt.status === "success") {
+        toast({
+          title: "PYUSD Staked Successfully! 🎉",
+          description: `Staking confirmed! Hash: ${hash.slice(
+            0,
+            10
+          )}...${hash.slice(-8)}`,
+          variant: "default",
+        });
+
+        // Log the successful transaction
+        console.log("Staking successful:", {
+          hash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed,
+          effectiveGasPrice: receipt.effectiveGasPrice,
+        });
+
+        // Call success callback with transaction hash
+        if (onSuccess) {
+          onSuccess(hash);
+        }
+
+        return true;
+      } else {
+        throw new Error("Staking transaction failed");
+      }
+    } catch (error) {
+      console.error("Error staking PYUSD:", error);
+
+      let errorMessage = "Unknown error occurred";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        // Handle specific contract errors
+        if (errorMessage.includes("insufficient funds")) {
+          errorMessage = "Insufficient ETH balance for gas fees";
+        } else if (errorMessage.includes("user rejected")) {
+          errorMessage = "Transaction was rejected by user";
+        } else if (errorMessage.includes("execution reverted")) {
+          errorMessage =
+            "Contract execution reverted. Check your inputs and contract state.";
+        }
+      }
+
+      toast({
+        title: "Error staking PYUSD",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to approve PYUSD for LPVault staking (separate function for manual approval)
+  const approvePYUSDForStaking = async (
+    amount: string,
+    onSuccess?: (hash: string) => void
+  ) => {
+    if (!user || !primaryWallet || !walletClient || !address || !publicClient) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to approve PYUSD for staking",
+        variant: "destructive",
+      });
+      return false;
+    }
+    console.log("Approving PYUSD for staking:", amount);
+    try {
+      setIsLoading(true);
+
+      // Check if user is on Sepolia network
+      const chainId = await publicClient.getChainId();
+      if (chainId !== 11155111) {
+        toast({
+          title: "Wrong Network",
+          description: "Please switch to Sepolia network to approve PYUSD",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const amountWei = parseUnits(amount, 6); // PYUSD has 6 decimals
+      const spenderAddress =
+        SEPOLIA_CONTRACT_ADDRESSES.LPVault as `0x${string}`;
+
+      // Check current allowance
+      const currentAllowance = await publicClient.readContract({
+        address: SEPOLIA_CONTRACT_ADDRESSES.PYUSD as `0x${string}`,
+        abi: PYUSD_ABI,
+        functionName: "allowance",
+        args: [address as `0x${string}`, spenderAddress],
+      });
+
+      console.log("PYUSD Staking Approval Check:");
+      console.log("  Amount to approve:", formatUnits(amountWei, 6), "PYUSD");
+      console.log(
+        "  Current allowance:",
+        formatUnits(currentAllowance as bigint, 6),
+        "PYUSD"
+      );
+
+      // Send approval transaction
+      const hash = await walletClient.writeContract({
+        address: SEPOLIA_CONTRACT_ADDRESSES.PYUSD as `0x${string}`,
+        abi: PYUSD_ABI,
+        functionName: "approve",
+        args: [spenderAddress, amountWei],
+      });
+
+      toast({
+        title: "Approval Transaction Sent",
+        description: `Waiting for confirmation... Hash: ${hash.slice(
+          0,
+          10
+        )}...${hash.slice(-8)}`,
+        variant: "default",
+      });
+
+      // Wait for transaction confirmation
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+      if (receipt.status === "success") {
+        toast({
+          title: "PYUSD Approved for Staking! ✅",
+          description: `Approval confirmed! Hash: ${hash.slice(
+            0,
+            10
+          )}...${hash.slice(-8)}`,
+          variant: "default",
+        });
+
+        // Call success callback with transaction hash
+        if (onSuccess) {
+          onSuccess(hash);
+        }
+
+        return true;
+      } else {
+        throw new Error("Approval transaction failed");
+      }
+    } catch (error) {
+      console.error("Error approving PYUSD for staking:", error);
+
+      let errorMessage = "Unknown error occurred";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Staking Approval Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     buyCoverage,
     approvePYUSD,
+    stakePYUSD,
+    approvePYUSDForStaking,
     getCCIPFeeEstimate,
     openClaim,
     voteOnClaim,

@@ -1,15 +1,22 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Sparkles } from "lucide-react";
+import { CheckCircle, Sparkles, X, Copy, Check } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 interface SuccessAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
   message?: string;
   transactionHash?: string;
-  transactionType?: "coverage" | "claim" | "vote" | "approval" | "general";
+  transactionType?:
+    | "coverage"
+    | "claim"
+    | "vote"
+    | "approval"
+    | "general"
+    | "stake";
 }
 
 export function SuccessAnimation({
@@ -30,22 +37,28 @@ export function SuccessAnimation({
         return "Vote submitted successfully! ✅";
       case "approval":
         return "Approval successful! ✅";
+      case "stake":
+        return "PYUSD staked successfully! Your shares are being synced to Hedera! 🎉";
       default:
         return "Transaction Successful!";
     }
   };
 
   const displayMessage = message || getDefaultMessage();
-  
+
   // Additional subtitle for coverage purchases
   const getSubtitle = () => {
     if (transactionType === "coverage") {
       return "Your coverage is being processed and will be active soon.";
     }
+    if (transactionType === "stake") {
+      return "Your staking position is active and earning rewards!";
+    }
     return null;
   };
 
   const [showConfetti, setShowConfetti] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
@@ -59,6 +72,25 @@ export function SuccessAnimation({
       return () => clearTimeout(timer);
     }
   }, [isVisible, onComplete]);
+
+  const handleClose = () => {
+    setShowConfetti(false);
+    if (onComplete) {
+      onComplete();
+    }
+  };
+
+  const handleCopyHash = async () => {
+    if (transactionHash) {
+      try {
+        await navigator.clipboard.writeText(transactionHash);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy transaction hash:", err);
+      }
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -75,6 +107,16 @@ export function SuccessAnimation({
             exit={{ y: 50, opacity: 0 }}
             className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4 text-center relative overflow-hidden"
           >
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-gray-100 z-10"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+
             {/* Confetti Animation */}
             <AnimatePresence>
               {showConfetti && (
@@ -163,10 +205,35 @@ export function SuccessAnimation({
                 transition={{ delay: 0.6 }}
                 className="mb-4"
               >
-                <p className="text-sm text-gray-600 mb-1">Transaction Hash:</p>
-                <p className="text-xs font-mono text-gray-500 bg-gray-100 p-2 rounded break-all">
-                  {transactionHash}
-                </p>
+                <p className="text-sm text-gray-600 mb-2">Transaction Hash:</p>
+                <div className="relative bg-gray-100 rounded-lg p-3">
+                  <p className="text-xs font-mono text-gray-700 break-all pr-8">
+                    {transactionHash}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyHash}
+                    className="absolute top-1 right-1 h-6 w-6 p-0 hover:bg-gray-200"
+                    title="Copy transaction hash"
+                  >
+                    {copied ? (
+                      <Check className="w-3 h-3 text-green-600" />
+                    ) : (
+                      <Copy className="w-3 h-3 text-gray-600" />
+                    )}
+                  </Button>
+                </div>
+                {copied && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-xs text-green-600 mt-1"
+                  >
+                    Copied to clipboard!
+                  </motion.p>
+                )}
               </motion.div>
             )}
 

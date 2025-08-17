@@ -1,9 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Progress } from "@/components/ui/progress"
-import { Vote, Clock, CheckCircle, Users, Gavel } from "lucide-react"
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Vote, Clock, CheckCircle, Users, Gavel } from "lucide-react";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useContractInteraction } from "@/hooks/use-contract-interaction";
+import { useToast } from "@/hooks/use-toast";
+import { SuccessAnimation } from "@/components/success-animation";
 
 const activeProposals = [
   {
@@ -26,7 +33,7 @@ const activeProposals = [
     timeLeft: "5 days",
     status: "Active",
   },
-]
+];
 
 const completedProposals = [
   {
@@ -37,11 +44,94 @@ const completedProposals = [
     votesAgainst: 22,
     executed: "2024-01-12",
   },
-]
+];
 
 export default function GovernancePage() {
+  const [votingStates, setVotingStates] = useState<
+    Record<string, { for: boolean; against: boolean }>
+  >({});
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successTransactionHash, setSuccessTransactionHash] = useState("");
+  const [successTransactionType, setSuccessTransactionType] = useState<
+    "vote" | "general"
+  >("general");
+
+  const { user } = useDynamicContext();
+  const { toast } = useToast();
+  const { voteOnClaim } = useContractInteraction();
+
+  const handleVote = async (proposalId: string, support: boolean) => {
+    if (!user) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to vote",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Extract claim ID from proposal ID (assuming format "PROP-001" maps to claim ID 1)
+    const claimId = BigInt(parseInt(proposalId.split("-")[1]));
+
+    // Set loading state for specific vote type
+    setVotingStates({
+      ...votingStates,
+      [proposalId]: {
+        for: support ? true : votingStates[proposalId]?.for || false,
+        against: !support ? true : votingStates[proposalId]?.against || false,
+      },
+    });
+
+    try {
+      const success = await voteOnClaim(claimId, support, (hash: string) => {
+        setSuccessTransactionHash(hash);
+        setSuccessTransactionType("vote");
+        setShowSuccessAnimation(true);
+      });
+
+      if (success) {
+        toast({
+          title: `Vote ${support ? "For" : "Against"} submitted! 🗳️`,
+          description: `Your vote has been recorded on the blockchain`,
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Voting Failed",
+        description:
+          "There was an error submitting your vote. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      // Clear loading state for specific vote type
+      setVotingStates({
+        ...votingStates,
+        [proposalId]: {
+          for: support ? false : votingStates[proposalId]?.for || false,
+          against: !support
+            ? false
+            : votingStates[proposalId]?.against || false,
+        },
+      });
+    }
+  };
+
+  const handleSuccessAnimationComplete = () => {
+    setShowSuccessAnimation(false);
+    setSuccessTransactionHash("");
+    setSuccessTransactionType("general");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      <SuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={handleSuccessAnimationComplete}
+        transactionHash={successTransactionHash}
+        transactionType={successTransactionType}
+      />
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Governance</h1>
         <p className="text-gray-600">Participate in DAO voting on Hedera</p>
@@ -50,7 +140,9 @@ export default function GovernancePage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Your Voting Power</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Your Voting Power
+            </CardTitle>
             <Vote className="h-4 w-4 text-cyan-600" />
           </CardHeader>
           <CardContent>
@@ -61,7 +153,9 @@ export default function GovernancePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Proposals</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Proposals
+            </CardTitle>
             <Gavel className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
@@ -72,7 +166,9 @@ export default function GovernancePage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Participation Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Participation Rate
+            </CardTitle>
             <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -108,8 +204,12 @@ export default function GovernancePage() {
                           <h4 className="font-semibold">{proposal.title}</h4>
                           <Badge variant="secondary">{proposal.status}</Badge>
                         </div>
-                        <p className="text-sm text-gray-600">{proposal.description}</p>
-                        <p className="text-sm text-gray-600">Time left: {proposal.timeLeft}</p>
+                        <p className="text-sm text-gray-600">
+                          {proposal.description}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Time left: {proposal.timeLeft}
+                        </p>
                       </div>
                     </div>
 
@@ -131,17 +231,54 @@ export default function GovernancePage() {
                           <span>Against</span>
                           <span>{proposal.votesAgainst}%</span>
                         </div>
-                        <Progress value={proposal.votesAgainst} className="h-2 bg-red-100" />
+                        <Progress
+                          value={proposal.votesAgainst}
+                          className="h-2 bg-red-100"
+                        />
                       </div>
                     </div>
 
                     <div className="flex gap-3 pt-2">
-                      <Button className="bg-green-600 hover:bg-green-700" size="sm">
-                        Vote For
-                      </Button>
-                      <Button variant="destructive" size="sm">
-                        Vote Against
-                      </Button>
+                      {user ? (
+                        <>
+                          <Button
+                            className="bg-green-600 hover:bg-green-700"
+                            size="sm"
+                            disabled={votingStates[proposal.id]?.for || false}
+                            onClick={() => handleVote(proposal.id, true)}
+                          >
+                            {votingStates[proposal.id]?.for ? (
+                              <>
+                                <div className="w-3 h-3 mr-1 border border-white border-t-transparent rounded-full animate-spin" />
+                                Voting...
+                              </>
+                            ) : (
+                              "Vote For"
+                            )}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={
+                              votingStates[proposal.id]?.against || false
+                            }
+                            onClick={() => handleVote(proposal.id, false)}
+                          >
+                            {votingStates[proposal.id]?.against ? (
+                              <>
+                                <div className="w-3 h-3 mr-1 border border-white border-t-transparent rounded-full animate-spin" />
+                                Voting...
+                              </>
+                            ) : (
+                              "Vote Against"
+                            )}
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="text-sm text-gray-500">
+                          Connect wallet to vote
+                        </div>
+                      )}
                       <Button variant="outline" size="sm">
                         View Details
                       </Button>
@@ -164,14 +301,23 @@ export default function GovernancePage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">{proposal.title}</h4>
-                        <Badge variant={proposal.result === "Approved" ? "default" : "destructive"}>
+                        <Badge
+                          variant={
+                            proposal.result === "Approved"
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
                           {proposal.result}
                         </Badge>
                       </div>
                       <p className="text-sm text-gray-600">
-                        For: {proposal.votesFor}% • Against: {proposal.votesAgainst}%
+                        For: {proposal.votesFor}% • Against:{" "}
+                        {proposal.votesAgainst}%
                       </p>
-                      <p className="text-sm text-gray-600">Executed: {proposal.executed}</p>
+                      <p className="text-sm text-gray-600">
+                        Executed: {proposal.executed}
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500" />
@@ -188,7 +334,9 @@ export default function GovernancePage() {
 
         <TabsContent value="parameters" className="space-y-4">
           <h3 className="text-lg font-semibold">DAO Parameters</h3>
-          <p className="text-gray-600">Current governance settings (read-only)</p>
+          <p className="text-gray-600">
+            Current governance settings (read-only)
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
@@ -197,11 +345,15 @@ export default function GovernancePage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Quorum Threshold</span>
+                  <span className="text-sm text-gray-600">
+                    Quorum Threshold
+                  </span>
                   <span className="font-medium">60%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Approval Threshold</span>
+                  <span className="text-sm text-gray-600">
+                    Approval Threshold
+                  </span>
                   <span className="font-medium">50%</span>
                 </div>
                 <div className="flex justify-between">
@@ -225,11 +377,15 @@ export default function GovernancePage() {
                   <span className="font-medium">2,400,000</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Circulating Supply</span>
+                  <span className="text-sm text-gray-600">
+                    Circulating Supply
+                  </span>
                   <span className="font-medium">1,850,000</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Min Proposal Stake</span>
+                  <span className="text-sm text-gray-600">
+                    Min Proposal Stake
+                  </span>
                   <span className="font-medium">10,000 gTokens</span>
                 </div>
                 <div className="flex justify-between">
@@ -242,5 +398,5 @@ export default function GovernancePage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
