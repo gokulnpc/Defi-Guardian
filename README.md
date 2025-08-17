@@ -17,6 +17,9 @@
 - **🔗 Chainlink CCIP Best Usage** ($6,000) - Revolutionary cross-chain insurance using CCIP for seamless Sepolia ↔ Hedera communication
 - **🚀 PYUSD Most Innovative Payment** ($3,500) - Novel cross-chain insurance premium splitting and claim payout automation
 - **👷 Hardhat 3 Best Projects** ($5,000) - Built entirely with Hardhat 3 Beta featuring 154 comprehensive tests, lightning-fast compilation, cross-chain deployment capabilities, and modern TypeScript integration demonstrating the full potential of next-generation Solidity development
+- **🏛️ Hedera EVM Smart Contracts** ($3,500) - Advanced smart contract deployment with CCIP enabled.
+- **💼 Dynamic Best Financial App** ($3,333) - Seamless DeFi insurance platform with embedded wallet infrastructure
+- **🤖 Nora AI Coding Best Use** ($5,000) - Advanced AI-assisted Solidity development and optimization
 
 ## 🌟 Project Overview
 
