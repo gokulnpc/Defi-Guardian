@@ -25,11 +25,15 @@ import {
   Info,
   X,
   Clock,
+  CloudCog,
+  TicketPlus,
+  PilcrowRightIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useToast } from "@/hooks/use-toast";
 import { useContractInteraction } from "@/hooks/use-contract-interaction";
+import { SuccessAnimation } from "@/components/success-animation";
 
 interface SimplifiedCoverageWidgetProps {
   activeTab: "coverage" | "stake" | "claim";
@@ -47,10 +51,14 @@ export function SimplifiedCoverageWidget({
   const [stakeAmount, setStakeAmount] = useState("");
   const [claimAmount, setClaimAmount] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isApproved, setIsApproved] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successTransactionHash, setSuccessTransactionHash] = useState("");
+  const [successTransactionType, setSuccessTransactionType] = useState<"coverage" | "claim" | "vote" | "approval" | "general">("general");
 
   const { user, primaryWallet } = useDynamicContext();
   const { toast } = useToast();
-  const { buyCoverage, getCCIPFeeEstimate } = useContractInteraction();
+  const { buyCoverage, approvePYUSD, getCCIPFeeEstimate } = useContractInteraction();
 
   // Mock protocols data
   const protocols = [
@@ -218,29 +226,42 @@ export function SimplifiedCoverageWidget({
       return;
     }
 
+    console.log("processing coverage for ", currentDuration, "days");
     setIsProcessing(true);
 
     try {
+      // Step 1: Approve PYUSD spending if not already approved
+      if (!isApproved) {
+        const approvalSuccess = await approvePYUSD(
+          premium.toString(),
+          (hash: string) => {
+            setSuccessTransactionHash(hash);
+            setSuccessTransactionType("approval");
+            setShowSuccessAnimation(true);
+          }
+        );
+        if (!approvalSuccess) {
+          setIsProcessing(false);
+          return;
+        }
+        setIsApproved(true);
+      }
+
+      // Step 2: Purchase coverage after approval
       const success = await buyCoverage(
         selectedProtocol,
         coverageAmount,
         currentDuration,
-        premium.toString()
+        premium.toString(),
+        (hash: string) => {
+          setSuccessTransactionHash(hash);
+          setSuccessTransactionType("coverage");
+          setShowSuccessAnimation(true);
+        }
       );
 
       if (success) {
-        toast({
-          title: "Coverage Purchased Successfully! 🎉",
-          description: "Your coverage has been purchased and is now active",
-          variant: "default",
-        });
-
-        // Reset form
-        setSelectedProtocol("");
-        setCoverageAmount("");
-        setDuration([90]);
-        setPremium(0);
-        setCcipFee("0");
+        // Form reset will be handled by the success animation callback
       }
     } catch (error) {
       console.error("Error purchasing coverage:", error);
@@ -255,8 +276,34 @@ export function SimplifiedCoverageWidget({
     }
   };
 
+  const resetForm = () => {
+    setSelectedProtocol("");
+    setCoverageAmount("1");
+    setDuration([90]);
+    setPremium(0);
+    setCcipFee("0");
+    setIsApproved(false);
+  };
+
+  const handleSuccessAnimationComplete = () => {
+    setShowSuccessAnimation(false);
+    setSuccessTransactionHash("");
+    setSuccessTransactionType("general");
+    
+    // Reset form after successful transaction
+    if (successTransactionType === "coverage") {
+      resetForm();
+    }
+  };
+
   return (
     <div className="w-full max-w-2xl mx-auto h-full">
+      <SuccessAnimation
+        isVisible={showSuccessAnimation}
+        onComplete={handleSuccessAnimationComplete}
+        transactionHash={successTransactionHash}
+        transactionType={successTransactionType}
+      />
       <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-gray-50/50 h-full flex flex-col">
         <CardContent className="px-6 pt-6 pb-0 flex-1 flex flex-col">
           <div className="flex-1">
@@ -473,7 +520,7 @@ export function SimplifiedCoverageWidget({
                         placeholder="10,000"
                         value={coverageAmount}
                         onChange={(e) => setCoverageAmount(e.target.value)}
-                        className="h-8 text-sm pr-16 border focus:border-blue-500"
+                        className="h-8 text-sm pr-16 border border-gray-300 focus:border-blue-500 bg-white rounded-md"
                       />
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center bg-gray-100 px-1 py-0.5 rounded">
                         <div className="w-3 h-3 relative mr-1">
@@ -496,14 +543,21 @@ export function SimplifiedCoverageWidget({
                       <Clock className="w-3 h-3 mr-1 text-blue-600" />
                       Duration ({currentDuration} days)
                     </Label>
-                    <Slider
-                      value={duration}
-                      onValueChange={setDuration}
-                      max={365}
-                      min={30}
-                      step={30}
-                      className="mt-2"
-                    />
+                    <div className="relative">
+                      <div className="h-8 bg-white border border-gray-300 rounded-md flex items-center px-3 focus-within:border-blue-500 transition-colors">
+                        <Slider
+                          value={duration}
+                          onValueChange={setDuration}
+                          max={365}
+                          min={30}
+                          step={30}
+                          className="flex-1"
+                        />
+                        <div className="ml-2 flex items-center bg-gray-100 px-1 py-0.5 rounded text-xs font-medium text-gray-600 min-w-[40px] justify-center">
+                          {currentDuration}d
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -549,7 +603,7 @@ export function SimplifiedCoverageWidget({
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600 text-xs">CCIP Fee:</span>
                       <span className="font-medium text-gray-900 text-xs">
-                        {ccipFee} ETH
+                        {ccipFee.slice(0, 8)} ETH
                       </span>
                     </div>
                     <div className="border-t border-blue-200 pt-2">
@@ -559,7 +613,7 @@ export function SimplifiedCoverageWidget({
                         </span>
                         <div className="flex items-center">
                           <span className="text-base font-bold text-blue-600 mr-1">
-                            {premium.toFixed(2)}
+                            {premium.toFixed(3)}
                           </span>
                           <div className="w-4 h-4 relative mr-1">
                             <Image
@@ -765,12 +819,7 @@ export function SimplifiedCoverageWidget({
         {activeTab === "coverage" && (
           <div className="mt-auto border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
             <div className="px-6 py-4">
-              {user && (
-                <div className="flex items-center justify-center space-x-2 mb-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Sepolia Testnet</span>
-                </div>
-              )}
+        
 
               {user ? (
                 <Button
@@ -786,13 +835,23 @@ export function SimplifiedCoverageWidget({
                   {isProcessing ? (
                     <>
                       <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Processing...
+                      {isApproved ? "Purchasing Coverage..." : "Approving PYUSD..."}
                     </>
                   ) : (
                     <>
-                      <Shield className="w-4 h-4 mr-2" />
-                      Purchase Coverage
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      {isApproved ? (
+                        <>
+                          <Shield className="w-4 h-4 mr-2" />
+                          Purchase Coverage
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      ) : (
+                        <>
+                    
+                          Approve PYUSD
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
                     </>
                   )}
                 </Button>
