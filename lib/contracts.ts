@@ -2022,8 +2022,8 @@ export interface Claim {
 
 // Chain selectors
 export const CHAIN_SELECTORS = {
-  HEDERA_TESTNET: BigInt("1"),
-  SEPOLIA: BigInt("11155111"),
+  HEDERA_TESTNET: BigInt("222782988166878823"),
+  SEPOLIA: BigInt("16015286601757825753"),
 } as const;
 
 export interface OpenClaimParams {

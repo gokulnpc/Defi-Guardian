@@ -73,33 +73,33 @@ async function configureSepoliaContracts(signer, addresses) {
   );
 
   // Allow Hedera destination chain
-  // console.log("   ✅ Allowing Hedera destination chain...");
-  // const tx1 = await premiumVault.allowlistDestChain(
-  //   addresses.HEDERA_CCIP_SELECTOR,
-  //   true
-  // );
-  // await tx1.wait();
-  // console.log("   📝 Transaction:", tx1.hash);
+  console.log("   ✅ Allowing Hedera destination chain...");
+  const tx1 = await premiumVault.allowlistDestChain(
+    addresses.HEDERA_CCIP_SELECTOR,
+    true
+  );
+  await tx1.wait();
+  console.log("   📝 Transaction:", tx1.hash);
 
   // Allow PolicyManager receiver
-  // console.log("   ✅ Allowing PolicyManager receiver...");
-  // const policyManagerEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
-  //   ["address"],
-  //   [addresses.POLICY_MANAGER]
-  // );
-  // console.log("policyManagerEncoded", policyManagerEncoded);
-  // const tx2 = await premiumVault.allowlistReceiver(policyManagerEncoded, true);
-  // await tx2.wait();
-  // console.log("   📝 Transaction:", tx2.hash);
+  console.log("   ✅ Allowing PolicyManager receiver...");
+  const policyManagerEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
+    ["address"],
+    [addresses.POLICY_MANAGER]
+  );
+  console.log("policyManagerEncoded", policyManagerEncoded);
+  const tx2 = await premiumVault.allowlistReceiver(policyManagerEncoded, true);
+  await tx2.wait();
+  console.log("   📝 Transaction:", tx2.hash);
 
   // Set gas limit for Hedera
-  // console.log("   ✅ Setting gas limit for Hedera...");
-  // const tx3 = await premiumVault.setGasLimit(
-  //   addresses.HEDERA_CCIP_SELECTOR,
-  //   200000
-  // );
-  // await tx3.wait();
-  // console.log("   📝 Transaction:", tx3.hash);
+  console.log("   ✅ Setting gas limit for Hedera...");
+  const tx3 = await premiumVault.setGasLimit(
+    addresses.HEDERA_CCIP_SELECTOR,
+    200000
+  );
+  await tx3.wait();
+  console.log("   📝 Transaction:", tx3.hash);
 
   // 2. Configure LPVault (Sepolia) → VotingMirror (Hedera)
   // console.log("\n📤 Configuring LPVault → VotingMirror...");
