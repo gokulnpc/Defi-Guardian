@@ -2,13 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -19,10 +24,7 @@ import {
   ArrowRight,
   Info,
   X,
-  CheckCircle,
   Clock,
-  AlertTriangle,
-  Eye,
 } from "lucide-react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useToast } from "@/hooks/use-toast";
@@ -32,14 +34,18 @@ interface SimplifiedCoverageWidgetProps {
   activeTab: "coverage" | "stake" | "claim";
 }
 
-export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidgetProps) {
+export function SimplifiedCoverageWidget({
+  activeTab,
+}: SimplifiedCoverageWidgetProps) {
   const [selectedProtocol, setSelectedProtocol] = useState("");
   const [coverageAmount, setCoverageAmount] = useState("");
   const [duration, setDuration] = useState([90]);
   const [premium, setPremium] = useState(0);
+  const [ccipFee, setCcipFee] = useState("0");
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
   const [stakeAmount, setStakeAmount] = useState("");
   const [claimAmount, setClaimAmount] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { user, primaryWallet } = useDynamicContext();
   const { toast } = useToast();
@@ -143,11 +149,11 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
 
   const calculatePremium = () => {
     if (!selectedProtocolData || !coverageAmount || !currentDuration) return 0;
-    
+
     const baseRate = parseFloat(selectedProtocolData.rate.replace("%", ""));
     const amount = parseFloat(coverageAmount.replace(/,/g, ""));
     const days = currentDuration;
-    
+
     return (amount * baseRate * days) / (100 * 365);
   };
 
@@ -169,9 +175,83 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
     return () => clearTimeout(timer);
   }, [selectedProtocol, coverageAmount, currentDuration]);
 
+  // Update CCIP fee when parameters change
+  useEffect(() => {
+    const updateCCIPFee = async () => {
+      if (selectedProtocol && coverageAmount && currentDuration && user) {
+        try {
+          const fee = await getCCIPFeeEstimate(
+            selectedProtocol,
+            coverageAmount,
+            currentDuration
+          );
+          setCcipFee(fee);
+        } catch (error) {
+          console.warn("Could not estimate CCIP fee:", error);
+          setCcipFee("0.001"); // Default fallback
+        }
+      }
+    };
+
+    updateCCIPFee();
+  }, [
+    selectedProtocol,
+    coverageAmount,
+    currentDuration,
+    user,
+    getCCIPFeeEstimate,
+  ]);
+
   const handleProtocolSelect = (protocolId: string) => {
     setSelectedProtocol(protocolId);
     setIsProtocolExpanded(false);
+  };
+
+  const handlePurchaseCoverage = async () => {
+    if (!selectedProtocol || !coverageAmount || premium === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const success = await buyCoverage(
+        selectedProtocol,
+        coverageAmount,
+        currentDuration,
+        premium.toString()
+      );
+
+      if (success) {
+        toast({
+          title: "Coverage Purchased Successfully! 🎉",
+          description: "Your coverage has been purchased and is now active",
+          variant: "default",
+        });
+
+        // Reset form
+        setSelectedProtocol("");
+        setCoverageAmount("");
+        setDuration([90]);
+        setPremium(0);
+        setCcipFee("0");
+      }
+    } catch (error) {
+      console.error("Error purchasing coverage:", error);
+      toast({
+        title: "Purchase Failed",
+        description:
+          "There was an error purchasing coverage. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -181,19 +261,6 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
           <div className="mt-6">
             {activeTab === "coverage" && (
               <div className="space-y-4">
-                {/* Progress Indicator */}
-                {/* <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium text-gray-600">
-                      Setup Progress
-                    </Label>
-                    <span className="text-sm font-medium text-gray-900">
-                      {getCompletionPercentage()}%
-                    </span>
-                  </div>
-                  <Progress value={getCompletionPercentage()} className="h-2" />
-                </div> */}
-
                 {/* Protocol Selection */}
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold flex items-center">
@@ -205,7 +272,9 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                     <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-300 transition-colors">
                       <div
                         className="flex items-center justify-between cursor-pointer"
-                        onClick={() => setIsProtocolExpanded(!isProtocolExpanded)}
+                        onClick={() =>
+                          setIsProtocolExpanded(!isProtocolExpanded)
+                        }
                       >
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
@@ -248,68 +317,85 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                             className="overflow-hidden"
                           >
                             <div className="mt-4 space-y-6">
-                              {Object.entries(protocolsByNetwork).map(([network, networkProtocols], networkIndex) => (
-                                <motion.div
-                                  key={network}
-                                  initial={{ opacity: 0, y: 20 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{
-                                    duration: 0.3,
-                                    delay: networkIndex * 0.1,
-                                    ease: "easeOut"
-                                  }}
-                                  className="space-y-3"
-                                >
-                                  {/* Network Header */}
-                                  <div className="flex items-center space-x-2">
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs font-medium px-2 py-1"
-                                    >
-                                      {network}
-                                    </Badge>
-                                    <div className="text-xs text-gray-500">
-                                      {networkProtocols.length} protocol{networkProtocols.length > 1 ? 's' : ''}
-                                    </div>
-                                  </div>
-
-                                  {/* Protocol Grid */}
-                                  <div className="grid grid-cols-3 gap-3">
-                                    {networkProtocols.map((protocol, index) => (
-                                      <motion.div
-                                        key={protocol.id}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{
-                                          duration: 0.2,
-                                          delay: (networkIndex * 0.1) + (index * 0.05),
-                                          ease: "easeOut"
-                                        }}
-                                        onClick={() => handleProtocolSelect(protocol.id)}
-                                        className="bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group"
+                              {Object.entries(protocolsByNetwork).map(
+                                ([network, networkProtocols], networkIndex) => (
+                                  <motion.div
+                                    key={network}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                      duration: 0.3,
+                                      delay: networkIndex * 0.1,
+                                      ease: "easeOut",
+                                    }}
+                                    className="space-y-3"
+                                  >
+                                    {/* Network Header */}
+                                    <div className="flex items-center space-x-2">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs font-medium px-2 py-1"
                                       >
-                                        <div className="flex flex-col items-center text-center space-y-2">
-                                          <span className="text-2xl">{protocol.logo}</span>
-                                          <div className="space-y-1">
-                                            <div className="font-medium text-gray-900 text-sm">
-                                              {protocol.name}
-                                            </div>
-                                            <div className="font-bold text-blue-600 text-lg">
-                                              {protocol.rate}
-                                            </div>
-                                          </div>
-                                          <Badge
-                                            variant={protocol.risk === "Low" ? "default" : protocol.risk === "Medium" ? "secondary" : "destructive"}
-                                            className="text-xs"
+                                        {network}
+                                      </Badge>
+                                      <div className="text-xs text-gray-500">
+                                        {networkProtocols.length} protocol
+                                        {networkProtocols.length > 1 ? "s" : ""}
+                                      </div>
+                                    </div>
+
+                                    {/* Protocol Grid */}
+                                    <div className="grid grid-cols-3 gap-3">
+                                      {networkProtocols.map(
+                                        (protocol, index) => (
+                                          <motion.div
+                                            key={protocol.id}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{
+                                              duration: 0.2,
+                                              delay:
+                                                networkIndex * 0.1 +
+                                                index * 0.05,
+                                              ease: "easeOut",
+                                            }}
+                                            onClick={() =>
+                                              handleProtocolSelect(protocol.id)
+                                            }
+                                            className="bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer group"
                                           >
-                                            {protocol.risk}
-                                          </Badge>
-                                        </div>
-                                      </motion.div>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              ))}
+                                            <div className="flex flex-col items-center text-center space-y-2">
+                                              <span className="text-2xl">
+                                                {protocol.logo}
+                                              </span>
+                                              <div className="space-y-1">
+                                                <div className="font-medium text-gray-900 text-sm">
+                                                  {protocol.name}
+                                                </div>
+                                                <div className="font-bold text-blue-600 text-lg">
+                                                  {protocol.rate}
+                                                </div>
+                                              </div>
+                                              <Badge
+                                                variant={
+                                                  protocol.risk === "Low"
+                                                    ? "default"
+                                                    : protocol.risk === "Medium"
+                                                    ? "secondary"
+                                                    : "destructive"
+                                                }
+                                                className="text-xs"
+                                              >
+                                                {protocol.risk}
+                                              </Badge>
+                                            </div>
+                                          </motion.div>
+                                        )
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )
+                              )}
                             </div>
                           </motion.div>
                         )}
@@ -392,8 +478,8 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                     <Clock className="w-3 h-3 mr-2 text-blue-600" />
                     Coverage Duration
                   </Label>
-                                  <div className="space-y-3">
-                  <div className="flex items-center space-x-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-4">
                       <Slider
                         value={duration}
                         onValueChange={setDuration}
@@ -405,7 +491,9 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                       <Input
                         type="number"
                         value={currentDuration}
-                        onChange={(e) => setDuration([parseInt(e.target.value) || 90])}
+                        onChange={(e) =>
+                          setDuration([parseInt(e.target.value) || 90])
+                        }
                         className="w-20 h-8 text-center text-sm"
                         min={30}
                         max={365}
@@ -441,6 +529,12 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                         {coverageAmount || "0"} PYUSD
                       </span>
                     </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">CCIP Fee:</span>
+                      <span className="font-medium text-gray-900">
+                        {ccipFee} ETH
+                      </span>
+                    </div>
                     <div className="border-t border-blue-200 pt-2">
                       <div className="flex justify-between items-center">
                         <span className="text-base font-semibold text-gray-900">
@@ -454,21 +548,50 @@ export function SimplifiedCoverageWidget({ activeTab }: SimplifiedCoverageWidget
                   </div>
                 </div>
 
+                {/* Network Status */}
+                {user && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-sm text-gray-600">
+                          Network Status
+                        </span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        Sepolia Testnet
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Make sure you're connected to Sepolia network
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Button */}
                 {user ? (
                   <Button
                     className="w-full h-10 text-base font-semibold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={!selectedProtocol || !coverageAmount || premium === 0}
-                    onClick={() => {
-                      toast({
-                        title: "Coverage Purchase",
-                        description: "Processing your coverage purchase...",
-                      });
-                    }}
+                    disabled={
+                      !selectedProtocol ||
+                      !coverageAmount ||
+                      premium === 0 ||
+                      isProcessing
+                    }
+                    onClick={handlePurchaseCoverage}
                   >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Purchase Coverage
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    {isProcessing ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-4 h-4 mr-2" />
+                        Purchase Coverage
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 ) : (
                   <div className="text-center text-sm text-gray-500">
