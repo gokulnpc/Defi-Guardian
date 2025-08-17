@@ -13,3 +13,6 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "contracts-repo"]
+	path = contracts-repo
+	url = https://github.com/gokulnpc/Defi-Guardian-Contracts.git
