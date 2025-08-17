@@ -29,8 +29,8 @@ async function main() {
 
   // CCIP Chain selectors for cross-chain communication
   // These are the official CCIP chain selectors from Chainlink documentation
-  const HEDERA_CCIP_SELECTOR = 222782988166878823; // Hedera Testnet CCIP selector
-  const SEPOLIA_CCIP_SELECTOR = 16015286601757825753; // Sepolia CCIP chain selector
+  const HEDERA_CCIP_SELECTOR = BigInt("222782988166878823"); // Hedera Testnet CCIP selector
+  const SEPOLIA_CCIP_SELECTOR = BigInt("16015286601757825753"); // Sepolia CCIP chain selector
 
   // Get signer from Hardhat (will use the private key from hardhat.config.js)
   const [signer] = await ethers.getSigners();

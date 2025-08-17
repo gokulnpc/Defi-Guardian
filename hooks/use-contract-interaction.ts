@@ -168,13 +168,8 @@ export function useContractInteraction() {
       console.log("policyTerms", policyTerms);
       // CCIP parameters for Hedera
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      // ABI-encode the PolicyManager address as bytes (required by contract)
-      const hederaReceiverEncoded = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569`;
-      console.log(
-        "hederaReceiver (raw):",
-        HEDERA_CONTRACT_ADDRESSES.PolicyManager
-      );
-      console.log("hederaReceiver (encoded):", hederaReceiverEncoded);
+      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
+      console.log("hederaReceiver", hederaReceiver);
       console.log("dstChainSelector", dstChainSelector);
       // First, let's estimate the CCIP fee
       let ccipFee = BigInt(0);
@@ -183,7 +178,7 @@ export function useContractInteraction() {
           address: SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
           abi: PremiumVaultABI,
           functionName: "quoteCCIPFee",
-          args: [dstChainSelector, hederaReceiverEncoded, policyTerms],
+          args: [dstChainSelector, hederaReceiver, policyTerms],
         });
         ccipFee = feeResult as bigint;
         console.log("CCIP Fee estimated:", formatEther(ccipFee), "ETH");
@@ -200,7 +195,7 @@ export function useContractInteraction() {
         functionName: "buyCoverage" as const,
         args: [
           dstChainSelector,
-          hederaReceiverEncoded,
+          hederaReceiver,
           policyTerms,
           parseEther(premium),
         ] as const,
@@ -340,17 +335,13 @@ export function useContractInteraction() {
       };
 
       const dstChainSelector = CHAIN_SELECTORS.HEDERA_TESTNET;
-      // ABI-encode the PolicyManager address as bytes (required by contract)
-      const hederaReceiverEncoded =
-        `0x000000000000000000000000${HEDERA_CONTRACT_ADDRESSES.PolicyManager.slice(
-          2
-        ).toLowerCase()}` as `0x${string}`;
-
+      const hederaReceiver = `0x000000000000000000000000d1b6bea5a3b3dd4836100f5c55877c59d4666569` as `0x${string}`;
+      console.log("publicClient", await publicClient.getChainId());
       const result = await publicClient.readContract({
         address: SEPOLIA_CONTRACT_ADDRESSES.PremiumVault as `0x${string}`,
         abi: PremiumVaultABI,
         functionName: "quoteCCIPFee",
-        args: [dstChainSelector, hederaReceiverEncoded, policyTerms],
+        args: [dstChainSelector, hederaReceiver, policyTerms],
       });
 
       return formatEther(result as bigint);
