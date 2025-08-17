@@ -44,8 +44,8 @@ export function SimplifiedCoverageWidget({
   const [premium, setPremium] = useState(0);
   const [ccipFee, setCcipFee] = useState("0");
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
-  const [stakeAmount, setStakeAmount] = useState("");
-  const [claimAmount, setClaimAmount] = useState("");
+  const [stakeAmount, setStakeAmount] = useState("1000");
+  const [claimAmount, setClaimAmount] = useState("1000");
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { user, primaryWallet } = useDynamicContext();
@@ -143,10 +143,20 @@ export function SimplifiedCoverageWidget({
     { value: 365, label: "1 year" },
   ];
 
-  const stakeRewards = {
-    apy: "12.5",
-    monthly: "104.17",
+  const calculateStakeRewards = () => {
+    const amount = parseFloat(stakeAmount.replace(/,/g, "")) || 0;
+    const apy = 12.5; // 12.5% APY
+    const monthlyRate = apy / 12 / 100;
+    const monthly = amount * monthlyRate;
+
+    return {
+      apy: apy.toString(),
+      monthly: monthly.toFixed(2),
+      yearly: ((amount * apy) / 100).toFixed(2),
+    };
   };
+
+  const stakeRewards = calculateStakeRewards();
 
   const calculatePremium = () => {
     if (!selectedProtocolData || !coverageAmount || !currentDuration) return 0;
@@ -409,11 +419,11 @@ export function SimplifiedCoverageWidget({
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+                      className="bg-blue-50 border border-blue-200 rounded-lg p-2"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 relative">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 relative">
                             <Image
                               src={selectedProtocolData.logo}
                               alt={selectedProtocolData.name}
@@ -422,27 +432,27 @@ export function SimplifiedCoverageWidget({
                             />
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-gray-900 text-sm">
                               {selectedProtocolData.name}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <Badge
                             variant="outline"
-                            className="border-slate-400 text-slate-700"
+                            className="border-slate-400 text-slate-700 text-xs px-1 py-0"
                           >
                             TVL: {selectedProtocolData.tvl}
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="border-green-400 text-green-700"
+                            className="border-green-400 text-green-700 text-xs px-1 py-0"
                           >
                             {selectedProtocolData.rate}
                           </Badge>
                           <Badge
                             variant="outline"
-                            className="border-blue-300 text-blue-700"
+                            className="border-blue-300 text-blue-700 text-xs px-1 py-0"
                           >
                             {selectedProtocolData.chain}
                           </Badge>
@@ -450,9 +460,9 @@ export function SimplifiedCoverageWidget({
                             variant="ghost"
                             size="sm"
                             onClick={() => setSelectedProtocol("")}
-                            className="h-8 w-8 p-0 hover:bg-blue-100"
+                            className="h-6 w-6 p-0 hover:bg-blue-100"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
@@ -460,51 +470,50 @@ export function SimplifiedCoverageWidget({
                   )}
                 </div>
 
-                {/* Coverage Amount & Duration - Combined Row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold flex items-center">
-                      <Shield className="w-3 h-3 mr-1 text-blue-600" />
-                      Coverage Amount
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        type="text"
-                        placeholder="10,000"
-                        value={coverageAmount}
-                        onChange={(e) => setCoverageAmount(e.target.value)}
-                        className="h-8 text-sm pr-16 border focus:border-blue-500"
-                      />
-                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center bg-gray-100 px-1 py-0.5 rounded">
-                        <div className="w-3 h-3 relative mr-1">
-                          <Image
-                            src="/pyusd.svg"
-                            alt="PYUSD"
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                        <span className="text-xs font-medium text-gray-600">
-                          PYUSD
-                        </span>
+                {/* Coverage Amount */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold flex items-center">
+                    <Shield className="w-3 h-3 mr-1 text-blue-600" />
+                    Coverage Amount
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="10,000"
+                      value={coverageAmount}
+                      onChange={(e) => setCoverageAmount(e.target.value)}
+                      className="h-8 text-sm pr-16 border focus:border-blue-500"
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center bg-gray-100 px-1 py-0.5 rounded">
+                      <div className="w-3 h-3 relative mr-1">
+                        <Image
+                          src="/pyusd.svg"
+                          alt="PYUSD"
+                          fill
+                          className="object-contain"
+                        />
                       </div>
+                      <span className="text-xs font-medium text-gray-600">
+                        PYUSD
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  <div className="space-y-1">
-                    <Label className="text-xs font-semibold flex items-center">
-                      <Clock className="w-3 h-3 mr-1 text-blue-600" />
-                      Duration ({currentDuration} days)
-                    </Label>
-                    <Slider
-                      value={duration}
-                      onValueChange={setDuration}
-                      max={365}
-                      min={30}
-                      step={30}
-                      className="mt-2"
-                    />
-                  </div>
+                {/* Duration */}
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold flex items-center">
+                    <Clock className="w-3 h-3 mr-1 text-blue-600" />
+                    Duration ({currentDuration} days)
+                  </Label>
+                  <Slider
+                    value={duration}
+                    onValueChange={setDuration}
+                    max={365}
+                    min={30}
+                    step={30}
+                    className="mt-2"
+                  />
                 </div>
 
                 {/* Premium Calculation */}
@@ -554,11 +563,11 @@ export function SimplifiedCoverageWidget({
                     </div>
                     <div className="border-t border-blue-200 pt-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-xs font-semibold text-gray-900">
                           Total Premium:
                         </span>
                         <div className="flex items-center">
-                          <span className="text-base font-bold text-blue-600 mr-1">
+                          <span className="text-xs font-semibold text-blue-600 mr-1">
                             {premium.toFixed(2)}
                           </span>
                           <div className="w-4 h-4 relative mr-1">
@@ -569,7 +578,7 @@ export function SimplifiedCoverageWidget({
                               className="object-contain"
                             />
                           </div>
-                          <span className="text-base font-bold text-blue-600">
+                          <span className="text-xs font-semibold text-blue-600">
                             PYUSD
                           </span>
                         </div>
@@ -581,30 +590,20 @@ export function SimplifiedCoverageWidget({
             )}
 
             {activeTab === "stake" && (
-              <div className="space-y-4">
-                <div className="text-center mb-3">
-                  <TrendingUp className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <h3 className="text-base font-semibold text-gray-900">
-                    Provide Liquidity
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    Earn rewards by staking PYUSD and supporting the insurance
-                    pool
-                  </p>
-                </div>
-
+              <div className="space-y-3">
                 <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-semibold flex items-center">
+                      <TrendingUp className="w-3 h-3 mr-1 text-green-600" />
                       Stake Amount
                     </Label>
                     <div className="relative">
                       <Input
-                        type="number"
+                        type="text"
                         placeholder="1,000"
                         value={stakeAmount}
                         onChange={(e) => setStakeAmount(e.target.value)}
-                        className="h-10 text-base pr-20 border-2 focus:border-green-500"
+                        className="h-8 text-sm pr-16 border focus:border-green-500"
                       />
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center bg-gray-100 px-1 py-0.5 rounded">
                         <div className="w-3 h-3 relative mr-1">
@@ -623,23 +622,25 @@ export function SimplifiedCoverageWidget({
                   </div>
 
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                      Rewards Overview
+                    <h4 className="font-semibold text-gray-900 mb-2 text-xs">
+                      Rewards Calculation
                     </h4>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Current APY:</span>
-                        <span className="text-xl font-bold text-green-600">
+                        <span className="text-gray-600 text-xs">
+                          Current APY:
+                        </span>
+                        <span className="text-sm font-bold text-green-600">
                           {stakeRewards.apy}%
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 text-xs">
                           Est. Monthly Rewards:
                         </span>
                         <div className="flex items-center">
-                          <span className="text-base font-semibold text-gray-900 mr-1">
-                            ~{stakeRewards.monthly}
+                          <span className="text-xs font-semibold text-gray-900 mr-1">
+                            {stakeRewards.monthly}
                           </span>
                           <div className="w-3 h-3 relative mr-1">
                             <Image
@@ -649,14 +650,60 @@ export function SimplifiedCoverageWidget({
                               className="object-contain"
                             />
                           </div>
-                          <span className="text-base font-semibold text-gray-900">
+                          <span className="text-xs font-semibold text-gray-900">
                             PYUSD
                           </span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Lock Period:</span>
-                        <span className="font-medium text-gray-900">1 day</span>
+                        <span className="text-gray-600 text-xs">
+                          Est. Yearly Rewards:
+                        </span>
+                        <div className="flex items-center">
+                          <span className="text-xs font-semibold text-green-600 mr-1">
+                            {stakeRewards.yearly}
+                          </span>
+                          <div className="w-3 h-3 relative mr-1">
+                            <Image
+                              src="/pyusd.svg"
+                              alt="PYUSD"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-green-600">
+                            PYUSD
+                          </span>
+                        </div>
+                      </div>
+                      <div className="border-t border-green-200 pt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-xs">
+                            Lock Period:
+                          </span>
+                          <span className="font-medium text-gray-900 text-xs">
+                            1 day minimum
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex items-start space-x-2">
+                      <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-xs text-amber-800">
+                        <p className="font-medium mb-1">Important:</p>
+                        <p className="mb-1">
+                          Staking involves risk of loss. APY rates are estimates
+                          and may vary based on protocol performance and market
+                          conditions.
+                        </p>
+                        <p>
+                          Your staked funds help provide liquidity to the
+                          insurance pool and may be subject to claims payouts
+                          during coverage events.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -666,16 +713,6 @@ export function SimplifiedCoverageWidget({
 
             {activeTab === "claim" && (
               <div className="space-y-4">
-                <div className="text-center mb-3">
-                  <FileText className="w-8 h-8 text-orange-600 mx-auto mb-2" />
-                  <h3 className="text-base font-semibold text-gray-900">
-                    Submit Claim
-                  </h3>
-                  <p className="text-gray-600 text-xs">
-                    Report an incident and request compensation for your losses
-                  </p>
-                </div>
-
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label className="text-sm font-semibold">Protocol</Label>
@@ -765,12 +802,9 @@ export function SimplifiedCoverageWidget({
         {activeTab === "coverage" && (
           <div className="mt-auto border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
             <div className="px-6 py-4">
-              {user && (
-                <div className="flex items-center justify-center space-x-2 mb-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600">Sepolia Testnet</span>
-                </div>
-              )}
+              <div className="text-center text-xs text-gray-600 mb-3">
+                Coverage Duration: {currentDuration} days
+              </div>
 
               {user ? (
                 <Button
@@ -808,6 +842,9 @@ export function SimplifiedCoverageWidget({
         {activeTab === "stake" && (
           <div className="mt-auto border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
             <div className="px-6 py-4">
+              <div className="text-center text-xs text-gray-600 mb-3">
+                Earn rewards by staking PYUSD and supporting the insurance pool
+              </div>
               <Button
                 className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={!stakeAmount}
